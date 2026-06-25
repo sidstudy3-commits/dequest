@@ -1,0 +1,99 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  password     String
+  username     String
+  streak       Int           @default(0)
+  lastActive   DateTime?
+  darkMode     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  topics       Topic[]
+  journals     Journal[]
+  projects     Project[]
+  goals        Goal[]
+  resources    Resource[]
+  achievements Achievement[]
+}
+
+model Topic {
+  id         Int      @id @default(autoincrement())
+  title      String
+  status     String   // "NOT_STARTED", "IN_PROGRESS", "COMPLETED"
+  difficulty String   // "BEGINNER", "INTERMEDIATE", "ADVANCED"
+  category   String
+  progress   Int      @default(0)
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Journal {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?   @db.Text
+  techStack   String    // Comma-separated list of technologies
+  deadline    DateTime?
+  progress    Int       @default(0)
+  status      String    // "PLANNING", "IN_PROGRESS", "COMPLETED"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Goal {
+  id        Int      @id @default(autoincrement())
+  title     String
+  type      String   // "DAILY", "WEEKLY", "MONTHLY"
+  completed Boolean  @default(false)
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Resource {
+  id        Int      @id @default(autoincrement())
+  title     String
+  type      String   // "YOUTUBE", "DOCS", "ARTICLE"
+  url       String
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id          Int      @id @default(autoincrement())
+  type        String   // "FIRST_TOPIC", "FIVE_TOPICS", "FIRST_JOURNAL", "FIRST_PROJECT", "GOAL_CRUSHER"
+  title       String
+  description String
+  unlockedAt  DateTime @default(now())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+}
